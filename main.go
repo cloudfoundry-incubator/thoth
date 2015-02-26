@@ -41,10 +41,22 @@ func main() {
 	channel := assistant.StreamRouterLogs(dopplerAddress, token, appGuid)
 	time.Sleep(3 * time.Second)
 	fmt.Println("Ready To Bench...")
+
+requests:
 	for {
+		var message1, message2 *events.Envelope
 		timeForRequest, respCode := makeRequest(appUrl)
-		message1 := <-channel
-		message2 := <-channel
+		select {
+		case message1 = <-channel:
+		default:
+			continue requests
+		}
+		select {
+		case message2 = <-channel:
+		default:
+			continue requests
+		}
+
 		var startStopMessage, logMessage events.Envelope
 		if *message1.EventType == events.Envelope_HttpStartStop {
 			startStopMessage = *message1

@@ -75,7 +75,7 @@ func StreamRouterLogs(dopplerAddress, authToken, appGuid string) <-chan *events.
 		connection.Stream(appGuid, authToken, msgChan, errorChan, nil)
 	}()
 
-	routerChan := make(chan *events.Envelope)
+	routerChan := make(chan *events.Envelope, 2)
 	go func(c chan<- *events.Envelope) {
 		for msg := range msgChan {
 			if strings.HasPrefix(*msg.Origin, "router_") && (*msg.EventType == events.Envelope_HttpStartStop || *msg.EventType == events.Envelope_LogMessage) {
