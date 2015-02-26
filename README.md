@@ -29,3 +29,11 @@ cf set-env thoth CF_USERNAME <your-username>
 cf set-env thoth DATADOG_API_KEY <your-datadog-api-key>
 cf start thoth
 ```
+
+## Metrics (from the bottom up)
+
+![metrics](https://cloud.githubusercontent.com/assets/223760/6404049/d3c167c8-bdc8-11e4-8a15-11cfed863565.png)
+
+* Time in App (`app_benchmarking.time_in_app`)
+* Time in Gorouter (`app_benchmarking.time_in_gorouter`)
+* Rest of Time (`app_benchmarking.rest_of_time`)
