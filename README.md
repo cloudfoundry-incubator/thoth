@@ -1,18 +1,31 @@
 # Thoth
 An App responsible for measuring and controlling time
 
-## Pushing
+## Setup
+
+
+### Push Benchmarked App
+
+The benchmarked app consists of an empty index.html and is pushed using the following:
+```
+mkdir /tmp/benchmarked-app && \
+cd /tmp/benchmarked-app && \
+touch index.html && \
+cf push benchmarked-app -n <benchmarked-app-hostname> -i 2 -m 64M -b https://github.com/cloudfoundry-community/staticfile-buildpack.git
+```
+
+### Push Thoth
 
 ```
 cf push thoth --no-route --no-start
-cf set-env thoth CF_APP_NAME <your value here>
-cf set-env thoth CF_DEPLOYMENT_NAME <your value here>
-cf set-env thoth CF_ORG <your value here>
-cf set-env thoth CF_PASSWORD <your value here>
-cf set-env thoth CF_SKIP_SSL_VALIDATION <your value here>
-cf set-env thoth CF_SPACE <your value here>
-cf set-env thoth CF_SYSTEM_DOMAIN <your value here>
-cf set-env thoth CF_USERNAME <your value here>
-cf set-env thoth DATADOG_API_KEY <your value here>
+cf set-env thoth CF_APP_NAME <benchmarked-app-name>
+cf set-env thoth CF_DEPLOYMENT_NAME <your-deployment-name>
+cf set-env thoth CF_ORG <your-org-name>
+cf set-env thoth CF_PASSWORD <your-password>
+cf set-env thoth CF_SKIP_SSL_VALIDATION <true/false>
+cf set-env thoth CF_SPACE <your-space>
+cf set-env thoth CF_SYSTEM_DOMAIN <cf-system-domain>
+cf set-env thoth CF_USERNAME <your-username>
+cf set-env thoth DATADOG_API_KEY <your-datadog-api-key>
 cf start thoth
 ```
