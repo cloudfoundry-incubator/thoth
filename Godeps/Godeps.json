@@ -1,0 +1,39 @@
+{
+	"ImportPath": "github.com/pivotal-cf-experimental/thoth",
+	"GoVersion": "go1.3",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/cloudfoundry-incubator/cf-test-helpers/cf",
+			"Rev": "86b7464c282caf24887acb30e30c0fa07303be87"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry-incubator/cf-test-helpers/runner",
+			"Rev": "86b7464c282caf24887acb30e30c0fa07303be87"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry/noaa",
+			"Rev": "7ec5b0dce4f86d1d79e3d68df670760bffd7c7c5"
+		},
+		{
+			"ImportPath": "github.com/gogo/protobuf/proto",
+			"Rev": "bc946d07d1016848dfd2507f90f0859c9471681e"
+		},
+		{
+			"ImportPath": "github.com/gorilla/websocket",
+			"Rev": "ab5b3a61f5b6aa323d66ece457334396c4ccdd03"
+		},
+		{
+			"ImportPath": "github.com/onsi/ginkgo",
+			"Comment": "v1.1.0-40-ge573630",
+			"Rev": "e57363034d6f4d61cd9ef0b6917f69ad03977914"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega",
+			"Comment": "v1.0-30-g982c859",
+			"Rev": "982c859aeeffd81ab8717403fb03c379b6c92b5f"
+		}
+	]
+}
