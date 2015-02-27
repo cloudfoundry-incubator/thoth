@@ -1,10 +1,15 @@
 {
 	"ImportPath": "github.com/pivotal-cf-experimental/thoth",
-	"GoVersion": "go1.3",
+	"GoVersion": "go1.3.3",
 	"Packages": [
 		"./..."
 	],
 	"Deps": [
+		{
+			"ImportPath": "code.google.com/p/go-uuid/uuid",
+			"Comment": "null-15",
+			"Rev": "35bc42037350f0078e3c974c6ea690f1926603ab"
+		},
 		{
 			"ImportPath": "github.com/cloudfoundry-incubator/cf-test-helpers/cf",
 			"Rev": "86b7464c282caf24887acb30e30c0fa07303be87"

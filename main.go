@@ -4,15 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
-	"regexp"
-	"strconv"
 	"time"
 
-	"github.com/cloudfoundry/noaa/events"
 	"github.com/pivotal-cf-experimental/thoth/assistant"
+	"github.com/pivotal-cf-experimental/thoth/benchmark"
 )
 
 var (
@@ -28,6 +25,22 @@ var (
 	dogURL = "https://app.datadoghq.com/api/v1/series?api_key=" + os.Getenv("DATADOG_API_KEY")
 )
 
+type Clock struct {
+	currentTime time.Time
+}
+
+func NewClock() *Clock {
+	return &Clock{}
+}
+
+func (fc *Clock) Now() time.Time {
+	return time.Now()
+}
+
+func (fc *Clock) Since(t time.Time) time.Duration {
+	return time.Since(t)
+}
+
 func main() {
 	fmt.Println("Starting...")
 	apiUrl := "api." + systemDomain
@@ -39,102 +52,35 @@ func main() {
 	dopplerAddress := "wss://doppler." + systemDomain + ":4443"
 	fmt.Println("Streaming Logs...")
 	channel := assistant.StreamRouterLogs(dopplerAddress, token, appGuid)
-	time.Sleep(3 * time.Second)
-	fmt.Println("Ready To Bench...")
 
-requests:
+	clock := NewClock()
 	for {
-		var message1, message2 *events.Envelope
-		timeForRequest, respCode := makeRequest(appUrl)
-		select {
-		case message1 = <-channel:
-		default:
-			continue requests
+		br := benchmark.NewBenchmarkRequest(appUrl, channel, clock, 2*time.Second)
+		response, err := br.Do()
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			continue
 		}
-		select {
-		case message2 = <-channel:
-		default:
-			continue requests
-		}
-
-		var startStopMessage, logMessage events.Envelope
-		if *message1.EventType == events.Envelope_HttpStartStop {
-			startStopMessage = *message1
-			logMessage = *message2
-		} else {
-			startStopMessage = *message2
-			logMessage = *message1
-		}
-		startStop := startStopMessage.GetHttpStartStop()
-		timeInApp := time.Unix(0, *startStop.StopTimestamp).Sub(time.Unix(0, *startStop.StartTimestamp))
-		re, _ := regexp.Compile("response_time:([^ ]+)")
-		respTimeSecs := re.FindSubmatch(logMessage.GetLogMessage().Message)
-		respTime, _ := time.ParseDuration(string(respTimeSecs[1]) + "s")
-		timeInRouter := respTime - timeInApp
-		restOfTime := timeForRequest - respTime
-		now := time.Now()
-		tags := []string{
-			"status:" + strconv.Itoa(respCode),
-			"deployment:" + deploymentName,
-		}
-		request := map[string]interface{}{
-			"series": []map[string]interface{}{
-				{
-					"metric": "app_benchmarking.total_roundtrip",
-					"points": [][]int64{
-						{now.Unix(), timeForRequest.Nanoseconds()},
-					},
-					"tags": tags,
-				},
-				{
-					"metric": "app_benchmarking.time_in_gorouter",
-					"points": [][]int64{
-						{now.Unix(), timeInRouter.Nanoseconds()},
-					},
-					"tags": tags,
-				},
-				{
-					"metric": "app_benchmarking.time_in_app",
-					"points": [][]int64{
-						{now.Unix(), timeInApp.Nanoseconds()},
-					},
-					"tags": tags,
-				},
-				{
-					"metric": "app_benchmarking.rest_of_time",
-					"points": [][]int64{
-						{now.Unix(), restOfTime.Nanoseconds()},
-					},
-					"tags": tags,
-				},
-			},
-		}
-		fmt.Println("Benching...")
-		emitMetric(request)
-		fmt.Println("Response code:", respCode)
-		fmt.Println("Total roundtrip time:", timeForRequest)
-		fmt.Println("Time spent sending to App:", timeInApp)
-		fmt.Println("Time from GoRouter receiving request to sending response:", respTime)
-		fmt.Println("Time spent in the GoRouter:", timeInRouter)
-		fmt.Println("Rest of the time:", restOfTime)
+		emitMetric(response.ToDatadog(deploymentName))
+		fmt.Println("Response code:", response.ResponseCode)
+		fmt.Println("Total roundtrip time:", response.TotalRoundrip)
+		fmt.Println("Time spent sending to App:", response.TimeInApp)
+		fmt.Println("Time spent in the GoRouter:", response.TimeInRouter)
+		fmt.Println("Rest of the time:", response.RestOfTime)
 		time.Sleep(5 * time.Second)
 	}
-}
-
-func makeRequest(u string) (time.Duration, int) {
-	start := time.Now()
-	resp, _ := http.Get(u)
-	return time.Since(start), resp.StatusCode
 }
 
 func emitMetric(req interface{}) {
 	buf, err := json.Marshal(req)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Fprintln(os.Stderr, err)
+		return
 	}
 	resp, err := http.Post(dogURL, "application/json", bytes.NewReader(buf))
 	if err != nil {
-		log.Fatal(err)
+		fmt.Fprintln(os.Stderr, err)
+		return
 	}
 	fmt.Println(resp)
 }

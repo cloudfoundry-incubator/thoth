@@ -6,12 +6,9 @@ An App responsible for measuring and controlling time
 
 ### Push Benchmarked App
 
-The benchmarked app consists of an empty index.html and is pushed using the following:
+The benchmarked app consists of an empty index.html plus an ngninx config and is pushed using the following:
 ```
-mkdir /tmp/benchmarked-app && \
-cd /tmp/benchmarked-app && \
-touch index.html && \
-cf push benchmarked-app -n <benchmarked-app-hostname> -i 2 -m 64M -b https://github.com/cloudfoundry-community/staticfile-buildpack.git
+cf push benchmarked-app -p benchmarked-app -n <benchmarked-app-hostname> -i 2 -m 64M -b https://github.com/cloudfoundry-community/staticfile-buildpack.git
 ```
 
 ### Push Thoth
