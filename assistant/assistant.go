@@ -2,6 +2,8 @@ package assistant
 
 import (
 	"crypto/tls"
+	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -71,8 +73,15 @@ func StreamRouterLogs(dopplerAddress, authToken, appGuid string) <-chan *events.
 	msgChan := make(chan *events.Envelope)
 	go func() {
 		defer close(msgChan)
+
 		errorChan := make(chan error)
-		connection.Stream(appGuid, authToken, msgChan, errorChan, nil)
+		defer close(errorChan)
+
+		go connection.Stream(appGuid, authToken, msgChan, errorChan, nil)
+
+		for err := range errorChan {
+			fmt.Fprintf(os.Stderr, "Doppler Connection Error: %v\n", err.Error())
+		}
 	}()
 
 	routerChan := make(chan *events.Envelope, 2)

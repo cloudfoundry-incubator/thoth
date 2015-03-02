@@ -59,9 +59,13 @@ func main() {
 		response, err := br.Do()
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
+			token = cfAssistant.GetOauthToken()
+			channel = assistant.StreamRouterLogs(dopplerAddress, token, appGuid)
 			continue
 		}
+
 		emitMetric(response.ToDatadog(deploymentName))
+
 		fmt.Println("Response code:", response.ResponseCode)
 		fmt.Println("Total roundtrip time:", response.TotalRoundrip)
 		fmt.Println("Time spent sending to App:", response.TimeInApp)
