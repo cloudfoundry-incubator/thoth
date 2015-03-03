@@ -2,8 +2,6 @@ package assistant
 
 import (
 	"crypto/tls"
-	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -67,25 +65,18 @@ func (a *Assistant) GetOauthToken() string {
 	return token
 }
 
-func StreamRouterLogs(dopplerAddress, authToken, appGuid string) <-chan *events.Envelope {
+func StreamRouterLogs(dopplerAddress, authToken, appGuid string, errorChan chan error) <-chan *events.Envelope {
 	connection := noaa.NewConsumer(dopplerAddress, &tls.Config{InsecureSkipVerify: true}, nil)
 
 	msgChan := make(chan *events.Envelope)
 	go func() {
 		defer close(msgChan)
-
-		errorChan := make(chan error)
-		defer close(errorChan)
-
-		go connection.Stream(appGuid, authToken, msgChan, errorChan, nil)
-
-		for err := range errorChan {
-			fmt.Fprintf(os.Stderr, "Doppler Connection Error: %v\n", err.Error())
-		}
+		connection.Stream(appGuid, authToken, msgChan, errorChan, nil)
 	}()
 
 	routerChan := make(chan *events.Envelope, 2)
 	go func(c chan<- *events.Envelope) {
+		defer close(c)
 		for msg := range msgChan {
 			if strings.HasPrefix(*msg.Origin, "router_") && (*msg.EventType == events.Envelope_HttpStartStop || *msg.EventType == events.Envelope_LogMessage) {
 				c <- msg

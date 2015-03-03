@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/cloudfoundry/noaa/events"
 	"github.com/pivotal-cf-experimental/thoth/assistant"
 	"github.com/pivotal-cf-experimental/thoth/benchmark"
 )
@@ -45,34 +46,46 @@ func main() {
 	fmt.Println("Starting...")
 	apiUrl := "api." + systemDomain
 	cfAssistant := assistant.NewAssistant(apiUrl, username, password, org, space, skipSSLValidation)
-	token := cfAssistant.GetOauthToken()
-
+	cfAssistant.GetOauthToken()
 	appGuid := cfAssistant.AppGuid(appName)
 	appUrl := "http://" + cfAssistant.AppUrl(appName)
 	dopplerAddress := "wss://doppler." + systemDomain + ":4443"
 	fmt.Println("Streaming Logs...")
-	channel := assistant.StreamRouterLogs(dopplerAddress, token, appGuid)
+	channel, errorChan := connectToFirehose(cfAssistant, dopplerAddress, appGuid)
 
 	clock := NewClock()
 	for {
-		br := benchmark.NewBenchmarkRequest(appUrl, channel, clock, 2*time.Second)
-		response, err := br.Do()
-		if err != nil {
+		select {
+		case err := <-errorChan:
 			fmt.Fprintln(os.Stderr, err)
-			token = cfAssistant.GetOauthToken()
-			channel = assistant.StreamRouterLogs(dopplerAddress, token, appGuid)
+			close(errorChan)
+			channel, errorChan = connectToFirehose(cfAssistant, dopplerAddress, appGuid)
 			continue
+		default:
+			br := benchmark.NewBenchmarkRequest(appUrl, channel, clock, 2*time.Second)
+			response, err := br.Do()
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				continue
+			}
+
+			emitMetric(response.ToDatadog(deploymentName))
+
+			fmt.Println("Response code:", response.ResponseCode)
+			fmt.Println("Total roundtrip time:", response.TotalRoundrip)
+			fmt.Println("Time spent sending to App:", response.TimeInApp)
+			fmt.Println("Time spent in the GoRouter:", response.TimeInRouter)
+			fmt.Println("Rest of the time:", response.RestOfTime)
+			time.Sleep(5 * time.Second)
 		}
-
-		emitMetric(response.ToDatadog(deploymentName))
-
-		fmt.Println("Response code:", response.ResponseCode)
-		fmt.Println("Total roundtrip time:", response.TotalRoundrip)
-		fmt.Println("Time spent sending to App:", response.TimeInApp)
-		fmt.Println("Time spent in the GoRouter:", response.TimeInRouter)
-		fmt.Println("Rest of the time:", response.RestOfTime)
-		time.Sleep(5 * time.Second)
 	}
+}
+
+func connectToFirehose(cfAssistant *assistant.Assistant, dopplerAddress, appGuid string) (<-chan *events.Envelope, chan error) {
+	errorChan := make(chan error)
+	token := cfAssistant.GetOauthToken()
+	channel := assistant.StreamRouterLogs(dopplerAddress, token, appGuid, errorChan)
+	return channel, errorChan
 }
 
 func emitMetric(req interface{}) {
