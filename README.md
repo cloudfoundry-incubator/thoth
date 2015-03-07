@@ -1,4 +1,6 @@
 # Thoth
+![thoth](https://cloud.githubusercontent.com/assets/223760/6539313/ecbb51cc-c425-11e4-92e9-8515b6f1c9ef.png)
+
 An App responsible for measuring and controlling time
 
 ## Setup
