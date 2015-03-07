@@ -10,12 +10,13 @@ type BenchmarkResponse struct {
 	TimeInApp     time.Duration
 	TimeInRouter  time.Duration
 	RestOfTime    time.Duration
+	Timestamp     time.Time
 
 	ResponseCode int
 }
 
 func (br BenchmarkResponse) ToDatadog(deploymentName string) map[string]interface{} {
-	now := time.Now()
+	now := br.Timestamp
 	tags := []string{
 		"status:" + strconv.Itoa(br.ResponseCode),
 		"deployment:" + deploymentName,

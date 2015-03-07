@@ -38,6 +38,7 @@ func NewBenchmarkRequest(appUrl string, ch <-chan *events.Envelope, clock Clock,
 }
 
 func (br *BenchmarkRequest) Do() (BenchmarkResponse, error) {
+	timestamp := br.clock.Now()
 	timeForRequest, respCode := br.makeRequest()
 	err := br.grabMessages()
 	if err != nil {
@@ -57,6 +58,7 @@ func (br *BenchmarkRequest) Do() (BenchmarkResponse, error) {
 		TimeInRouter:  timeInRouter,
 		RestOfTime:    restOfTime,
 		ResponseCode:  respCode,
+		Timestamp:     timestamp,
 	}
 
 	return response, nil

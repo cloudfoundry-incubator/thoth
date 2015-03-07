@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	CF_TIMEOUT = 5 * time.Second
+	CF_TIMEOUT = 30 * time.Second
 )
 
 type Assistant struct {
@@ -65,21 +65,26 @@ func (a *Assistant) GetOauthToken() string {
 	return token
 }
 
-func StreamRouterLogs(dopplerAddress, authToken, appGuid string, errorChan chan error) <-chan *events.Envelope {
+func StreamRouterLogs(dopplerAddress, authToken, appGuid string, errorChan chan error, stopChan chan struct{}) <-chan *events.Envelope {
 	connection := noaa.NewConsumer(dopplerAddress, &tls.Config{InsecureSkipVerify: true}, nil)
 
 	msgChan := make(chan *events.Envelope)
 	go func() {
 		defer close(msgChan)
-		connection.Stream(appGuid, authToken, msgChan, errorChan, nil)
+		connection.Stream(appGuid, authToken, msgChan, errorChan, stopChan)
 	}()
 
 	routerChan := make(chan *events.Envelope, 2)
 	go func(c chan<- *events.Envelope) {
 		defer close(c)
-		for msg := range msgChan {
-			if strings.HasPrefix(*msg.Origin, "router_") && (*msg.EventType == events.Envelope_HttpStartStop || *msg.EventType == events.Envelope_LogMessage) {
-				c <- msg
+		for {
+			select {
+			case msg := <-msgChan:
+				if strings.HasPrefix(*msg.Origin, "router_") && (*msg.EventType == events.Envelope_HttpStartStop || *msg.EventType == events.Envelope_LogMessage) {
+					c <- msg
+				}
+			case <-stopChan:
+				return
 			}
 		}
 	}(routerChan)

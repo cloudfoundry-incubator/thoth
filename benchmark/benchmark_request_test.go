@@ -18,7 +18,7 @@ type FakeClock struct {
 
 func NewFakeClock() *FakeClock {
 	return &FakeClock{
-		currentTime: time.Time{},
+		currentTime: time.Unix(123456789, 0),
 	}
 }
 
@@ -111,6 +111,12 @@ var _ = Describe("BenchmarkRequest", func() {
 				response, err := br.Do()
 				Expect(err).NotTo(HaveOccurred())
 				Expect(response.RestOfTime).To(Equal(20 * time.Millisecond))
+			})
+
+			It("returns timestamp when it started", func() {
+				response, err := br.Do()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(response.Timestamp).To(Equal(time.Unix(123456789, 0)))
 			})
 		})
 

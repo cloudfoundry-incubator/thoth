@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/pivotal-cf-experimental/thoth",
-	"GoVersion": "go1.3.3",
+	"GoVersion": "go1.4.1",
 	"Packages": [
 		"./..."
 	],
@@ -11,12 +11,16 @@
 			"Rev": "35bc42037350f0078e3c974c6ea690f1926603ab"
 		},
 		{
+			"ImportPath": "github.com/cloudfoundry-incubator/cf-lager",
+			"Rev": "3324790250247b4d3bd3abc3e74654a537d79a30"
+		},
+		{
 			"ImportPath": "github.com/cloudfoundry-incubator/cf-test-helpers/cf",
-			"Rev": "86b7464c282caf24887acb30e30c0fa07303be87"
+			"Rev": "9019959e909460f087ebab5aabc12516efba7f95"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry-incubator/cf-test-helpers/runner",
-			"Rev": "86b7464c282caf24887acb30e30c0fa07303be87"
+			"Rev": "9019959e909460f087ebab5aabc12516efba7f95"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/noaa",
@@ -39,6 +43,14 @@
 			"ImportPath": "github.com/onsi/gomega",
 			"Comment": "v1.0-30-g982c859",
 			"Rev": "982c859aeeffd81ab8717403fb03c379b6c92b5f"
+		},
+		{
+			"ImportPath": "github.com/pivotal-golang/lager",
+			"Rev": "d0663447db75fcf983c95bda8b1a908305df6e1e"
+		},
+		{
+			"ImportPath": "github.com/tedsuo/ifrit",
+			"Rev": "611096055721e35a95e3d1e4e2bc666fae509fcb"
 		}
 	]
 }

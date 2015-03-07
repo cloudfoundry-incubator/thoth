@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
-	"time"
 
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/config"
@@ -13,8 +12,6 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-const timeFormat = "2006-01-02 15:04:05.00 (MST)"
-
 var CommandInterceptor = func(cmd *exec.Cmd) *exec.Cmd {
 	return cmd
 }
@@ -22,7 +19,7 @@ var CommandInterceptor = func(cmd *exec.Cmd) *exec.Cmd {
 func Run(executable string, args ...string) *gexec.Session {
 	cmd := exec.Command(executable, args...)
 
-	sayCommandWillRun(time.Now(), cmd)
+	sayCommandWillRun(cmd)
 
 	sess, err := gexec.Start(CommandInterceptor(cmd), ginkgo.GinkgoWriter, ginkgo.GinkgoWriter)
 	Expect(err).NotTo(HaveOccurred())
@@ -35,12 +32,12 @@ func Curl(args ...string) *gexec.Session {
 	return Run("curl", args...)
 }
 
-func sayCommandWillRun(startTime time.Time, cmd *exec.Cmd) {
+func sayCommandWillRun(cmd *exec.Cmd) {
 	startColor := ""
 	endColor := ""
 	if !config.DefaultReporterConfig.NoColor {
 		startColor = "\x1b[32m"
 		endColor = "\x1b[0m"
 	}
-	fmt.Fprintf(ginkgo.GinkgoWriter, "\n%s[%s]> %s %s\n", startColor, startTime.UTC().Format(timeFormat), strings.Join(cmd.Args, " "), endColor)
+	fmt.Fprintf(ginkgo.GinkgoWriter, "\n%s> %s %s\n", startColor, strings.Join(cmd.Args, " "), endColor)
 }
