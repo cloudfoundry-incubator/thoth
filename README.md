@@ -24,6 +24,10 @@ cf set-env thoth CF_SPACE <your-space>
 cf set-env thoth CF_SYSTEM_DOMAIN <cf-system-domain>
 cf set-env thoth CF_USERNAME <your-username>
 cf set-env thoth DATADOG_API_KEY <your-datadog-api-key>
+
+# optionally set the number of concurrent benchmarks
+cf set-env thoth THOTH_THREADS 5
+
 cf start thoth
 ```
 
