@@ -15,11 +15,12 @@ type BenchmarkResponse struct {
 	ResponseCode int
 }
 
-func (br BenchmarkResponse) ToDatadog(deploymentName string) map[string]interface{} {
+func (br BenchmarkResponse) ToDatadog(deploymentName string, index int) map[string]interface{} {
 	now := br.Timestamp
 	tags := []string{
 		"status:" + strconv.Itoa(br.ResponseCode),
 		"deployment:" + deploymentName,
+		"index:" + strconv.Itoa(index),
 	}
 	return map[string]interface{}{
 		"series": []map[string]interface{}{

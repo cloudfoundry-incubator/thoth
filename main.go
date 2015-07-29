@@ -133,7 +133,7 @@ func (m *measurer) Run(signals <-chan os.Signal, ready chan<- struct{}) error {
 				"rest-of-time":     response.RestOfTime,
 			})
 
-			m.emitMetric(response.ToDatadog(deploymentName))
+			m.emitMetric(response.ToDatadog(deploymentName, m.index))
 		case err := <-errorChan:
 			log.Error("firehose-disconnect", err)
 			close(errorChan)
