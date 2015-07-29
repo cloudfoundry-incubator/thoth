@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"time"
 
+	. "github.com/cloudfoundry-incubator/thoth/benchmark"
 	"github.com/cloudfoundry/noaa/events"
-	. "github.com/pivotal-cf-experimental/thoth/benchmark"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

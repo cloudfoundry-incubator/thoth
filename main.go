@@ -12,9 +12,9 @@ import (
 	"time"
 
 	cf_lager "github.com/cloudfoundry-incubator/cf-lager"
+	"github.com/cloudfoundry-incubator/thoth/assistant"
+	"github.com/cloudfoundry-incubator/thoth/benchmark"
 	"github.com/cloudfoundry/noaa/events"
-	"github.com/pivotal-cf-experimental/thoth/assistant"
-	"github.com/pivotal-cf-experimental/thoth/benchmark"
 	"github.com/pivotal-golang/lager"
 	"github.com/tedsuo/ifrit"
 	"github.com/tedsuo/ifrit/grouper"

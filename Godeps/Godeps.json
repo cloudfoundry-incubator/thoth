@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/pivotal-cf-experimental/thoth",
+	"ImportPath": "github.com/cloudfoundry-incubator/thoth",
 	"GoVersion": "go1.4.1",
 	"Packages": [
 		"./..."
