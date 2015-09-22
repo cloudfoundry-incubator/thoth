@@ -17,7 +17,7 @@ We can use Dropsonde to send container metrics to metron which will emit them to
 
 1. Copy out the guid value from the last bash line
 1. Paste the guid into the container_metrics_emitter.go and main.go as the appId value at the top of the files
-1. In the main.go update the DopplerAddress value by replacing '10.244.0.34.xip.io' with the value for the environment you are testing.
+1. In the main.go update the DopplerAddress value by replacing 'bosh-lite.com' with the value for the environment you are testing.
 1. Start the listener
 
         export CF_ACCESS_TOKEN=`cf oauth-token | tail -n 1`
