@@ -71,7 +71,7 @@ func main() {
 	logger.Info("starting", lager.Data{"threads": threads})
 
 	apiUrl := "api." + systemDomain
-	cfAssistant := assistant.NewAssistant(apiUrl, username, password, org, space, skipSSLValidation)
+	cfAssistant = assistant.NewAssistant(apiUrl, username, password, org, space, skipSSLValidation)
 	cfAssistant.GetOauthToken()
 	appGuid = cfAssistant.AppGuid(appName)
 	appUrl = "http://" + cfAssistant.AppUrl(appName)
