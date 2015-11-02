@@ -2,6 +2,8 @@ package assistant
 
 import (
 	"crypto/tls"
+	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -35,18 +37,26 @@ func NewAssistant(apiUrl, username, password, org, space string, skipSSLValidati
 	}
 }
 
-func (a *Assistant) AppGuid(appName string) string {
+func (a *Assistant) AppGuid(appName string) (string, error) {
 	var appGuid string
+	var err error
 	cf.AsUser(a.userContext, func() {
-		appGuid = strings.TrimSpace(string(cf.Cf("app", appName, "--guid").Wait(CF_TIMEOUT).Out.Contents()))
+		session := cf.Cf("app", appName, "--guid").Wait(CF_TIMEOUT)
+		if session.ExitCode() != 0 {
+			err = errors.New(fmt.Sprintf("cf app --guid command failed: %s", string(session.Out.Contents())))
+			return
+		}
+
+		appGuid = strings.TrimSpace(string(session.Out.Contents()))
 	})
-	return appGuid
+	return appGuid, err
 }
 
 func (a *Assistant) AppUrl(appName string) string {
 	var appUrl string
 	cf.AsUser(a.userContext, func() {
-		bytes := runner.Run("bash", "-c", `cf app `+appName+` | grep urls | cut -d" " -f2`).Wait(CF_TIMEOUT).Out.Contents()
+		session := runner.Run("bash", "-c", `cf app `+appName+` | grep urls | cut -d" " -f2`)
+		bytes := session.Wait(CF_TIMEOUT).Out.Contents()
 		appUrl = strings.TrimSpace(string(bytes))
 	})
 	return appUrl

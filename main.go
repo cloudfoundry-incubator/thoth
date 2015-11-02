@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"flag"
 	"io/ioutil"
 	"net/http"
@@ -73,8 +74,18 @@ func main() {
 	apiUrl := "api." + systemDomain
 	cfAssistant = assistant.NewAssistant(apiUrl, username, password, org, space, skipSSLValidation)
 	cfAssistant.GetOauthToken()
-	appGuid = cfAssistant.AppGuid(appName)
-	appUrl = "http://" + cfAssistant.AppUrl(appName)
+
+	appGuid, err = cfAssistant.AppGuid(appName)
+	if err != nil {
+		logger.Fatal("app-guid", err)
+	}
+
+	hostname := cfAssistant.AppUrl(appName)
+	if hostname == "" {
+		logger.Fatal("app-url", errors.New("Could not find app hostname."))
+	}
+
+	appUrl = "http://" + hostname
 	dopplerAddress = "wss://doppler." + systemDomain + ":4443"
 	refreshToken(cfAssistant)
 
