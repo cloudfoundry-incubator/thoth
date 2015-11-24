@@ -17,6 +17,7 @@ import (
 
 const (
 	CF_TIMEOUT = 30 * time.Second
+	ORIGIN     = "gorouter"
 )
 
 type Assistant struct {
@@ -90,7 +91,7 @@ func StreamRouterLogs(dopplerAddress, authToken, appGuid string, errorChan chan 
 		for {
 			select {
 			case msg := <-msgChan:
-				if strings.HasPrefix(*msg.Origin, "router_") && (*msg.EventType == events.Envelope_HttpStartStop || *msg.EventType == events.Envelope_LogMessage) {
+				if strings.HasPrefix(*msg.Origin, ORIGIN) && (*msg.EventType == events.Envelope_HttpStartStop || *msg.EventType == events.Envelope_LogMessage) {
 					c <- msg
 				}
 			case <-stopChan:
