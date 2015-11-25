@@ -5,10 +5,9 @@ An App responsible for measuring and controlling time
 
 ## Setup
 
-
 ### Push Benchmarked App
 
-The benchmarked app consists of an empty index.html plus an ngninx config and is pushed using the following:
+The benchmarked app consists of an empty index.html plus an nginx config and is pushed using the following:
 ```
 (cd benchmarked-app ; cf push)
 ```
