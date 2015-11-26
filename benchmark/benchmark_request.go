@@ -41,6 +41,7 @@ func NewBenchmarkRequest(appUrl string, ch <-chan *events.Envelope, clock Clock,
 func (br *BenchmarkRequest) Do() (BenchmarkResponse, error) {
 	timestamp := br.clock.Now()
 	timeForRequest, respCode := br.makeRequest()
+	fmt.Printf("response code: %v\n", respCode)
 	err := br.grabMessages()
 	if err != nil {
 		return BenchmarkResponse{}, err
@@ -48,7 +49,12 @@ func (br *BenchmarkRequest) Do() (BenchmarkResponse, error) {
 
 	timeInApp := time.Unix(0, *br.httpStartStop.StopTimestamp).Sub(time.Unix(0, *br.httpStartStop.StartTimestamp))
 	re, _ := regexp.Compile("response_time:([^ ]+)")
+	fmt.Printf("logMsg: [%s]\n", string(br.logMessage.Message))
 	respTimeSecs := re.FindSubmatch(br.logMessage.Message)
+	if respTimeSecs == nil {
+		err = errors.New("Error could not parse 'response_time' in log messages")
+		return BenchmarkResponse{}, err
+	}
 	respTime, _ := time.ParseDuration(string(respTimeSecs[1]) + "s")
 	timeInRouter := respTime - timeInApp
 	restOfTime := timeForRequest - respTime
@@ -79,6 +85,8 @@ func (br *BenchmarkRequest) grabMessages() error {
 			return errors.New("timed out getting messages for request: " + br.Guid.String())
 		}
 	}
+
+	fmt.Printf("Message 1: [%#v] Message 2: [%#v] Req Guid: [%s]\n", messages[0].EventType, messages[1].EventType, br.Guid.String())
 
 	for _, message := range messages {
 		if *message.EventType == events.Envelope_HttpStartStop {
