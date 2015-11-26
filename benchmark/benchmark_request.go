@@ -2,6 +2,7 @@ package benchmark
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
@@ -64,11 +65,24 @@ func (br *BenchmarkRequest) Do() (BenchmarkResponse, error) {
 	return response, nil
 }
 
+func complete(messages []*events.Envelope) bool {
+	var http, log bool
+	for _, message := range messages {
+		switch *message.EventType {
+		case events.Envelope_HttpStartStop:
+			http = true
+		case events.Envelope_LogMessage:
+			log = true
+		}
+	}
+	return http && log
+}
+
 func (br *BenchmarkRequest) grabMessages() error {
 	messages := []*events.Envelope{}
 	timeout := time.After(br.timeout)
 
-	for len(messages) < 2 {
+	for !complete(messages) {
 		select {
 		case message := <-br.ch:
 			if br.checkMessage(message) {
@@ -82,10 +96,14 @@ func (br *BenchmarkRequest) grabMessages() error {
 	for _, message := range messages {
 		if *message.EventType == events.Envelope_HttpStartStop {
 			br.httpStartStop = *message.GetHttpStartStop()
-		} else {
+		} else if *message.EventType == events.Envelope_LogMessage {
 			br.logMessage = *message.GetLogMessage()
+		} else {
+			fmt.Printf("invalid msg type: %v", *message.EventType)
+			return errors.New("got invalid msg type: " + br.Guid.String())
 		}
 	}
+
 	return nil
 }
 
