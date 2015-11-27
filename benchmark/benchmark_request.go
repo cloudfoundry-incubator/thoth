@@ -2,7 +2,6 @@ package benchmark
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
@@ -41,7 +40,6 @@ func NewBenchmarkRequest(appUrl string, ch <-chan *events.Envelope, clock Clock,
 func (br *BenchmarkRequest) Do() (BenchmarkResponse, error) {
 	timestamp := br.clock.Now()
 	timeForRequest, respCode := br.makeRequest()
-	fmt.Printf("response code: %v\n", respCode)
 	err := br.grabMessages()
 	if err != nil {
 		return BenchmarkResponse{}, err
@@ -49,7 +47,6 @@ func (br *BenchmarkRequest) Do() (BenchmarkResponse, error) {
 
 	timeInApp := time.Unix(0, *br.httpStartStop.StopTimestamp).Sub(time.Unix(0, *br.httpStartStop.StartTimestamp))
 	re, _ := regexp.Compile("response_time:([^ ]+)")
-	fmt.Printf("logMsg: [%s]\n", string(br.logMessage.Message))
 	respTimeSecs := re.FindSubmatch(br.logMessage.Message)
 	if respTimeSecs == nil {
 		err = errors.New("Error could not parse 'response_time' in log messages")
@@ -71,11 +68,23 @@ func (br *BenchmarkRequest) Do() (BenchmarkResponse, error) {
 	return response, nil
 }
 
+func complete(messages []*events.Envelope) bool {
+	var http, log bool
+	for _, message := range messages {
+		if *message.EventType == events.Envelope_HttpStartStop {
+			http = true
+		} else if *message.EventType == events.Envelope_LogMessage {
+			log = true
+		}
+	}
+	return http && log
+}
+
 func (br *BenchmarkRequest) grabMessages() error {
 	messages := []*events.Envelope{}
 	timeout := time.After(br.timeout)
 
-	for len(messages) < 2 {
+	for !complete(messages) {
 		select {
 		case message := <-br.ch:
 			if br.checkMessage(message) {
@@ -86,20 +95,23 @@ func (br *BenchmarkRequest) grabMessages() error {
 		}
 	}
 
-	fmt.Printf("Message 1: [%#v] Message 2: [%#v] Req Guid: [%s]\n", messages[0].EventType, messages[1].EventType, br.Guid.String())
-
 	for _, message := range messages {
-		if *message.EventType == events.Envelope_HttpStartStop {
+		if !br.hasHttpStartStop() && *message.EventType == events.Envelope_HttpStartStop {
 			br.httpStartStop = *message.GetHttpStartStop()
-		} else if *message.EventType == events.Envelope_LogMessage {
+		} else if !br.hasLogMessage() && *message.EventType == events.Envelope_LogMessage {
 			br.logMessage = *message.GetLogMessage()
-		} else {
-			fmt.Printf("invalid msg type: %v", *message.EventType)
-			return errors.New("got invalid msg type: " + br.Guid.String())
 		}
 	}
 
 	return nil
+}
+
+func (br *BenchmarkRequest) hasHttpStartStop() bool {
+	return br.httpStartStop.StartTimestamp != nil && br.httpStartStop.StopTimestamp != nil
+}
+
+func (br *BenchmarkRequest) hasLogMessage() bool {
+	return len(br.logMessage.Message) > 0
 }
 
 func (br *BenchmarkRequest) checkMessage(message *events.Envelope) bool {
