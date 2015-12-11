@@ -32,6 +32,8 @@ cf set-env thoth THOTH_THREADS 5
 cf start thoth
 ```
 
+For Diego, you will need to set the health check to none, like so: `cf set-health-check APPLICATION_NAME none`.
+
 ## Metrics (from the bottom up)
 
 ![metrics](https://cloud.githubusercontent.com/assets/223760/6404049/d3c167c8-bdc8-11e4-8a15-11cfed863565.png)
