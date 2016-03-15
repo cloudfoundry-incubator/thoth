@@ -1,15 +1,10 @@
 {
 	"ImportPath": "github.com/cloudfoundry-incubator/thoth",
-	"GoVersion": "go1.4.3",
+	"GoVersion": "go1.5.3",
 	"Packages": [
 		"./..."
 	],
 	"Deps": [
-		{
-			"ImportPath": "code.google.com/p/go-uuid/uuid",
-			"Comment": "null-15",
-			"Rev": "35bc42037350f0078e3c974c6ea690f1926603ab"
-		},
 		{
 			"ImportPath": "github.com/cloudfoundry-incubator/cf-lager",
 			"Rev": "3324790250247b4d3bd3abc3e74654a537d79a30"
@@ -29,6 +24,11 @@
 		{
 			"ImportPath": "github.com/gogo/protobuf/proto",
 			"Rev": "bc946d07d1016848dfd2507f90f0859c9471681e"
+		},
+		{
+			"ImportPath": "github.com/google/uuid",
+			"Comment": "v.1-19-gf3f4b54",
+			"Rev": "f3f4b54b2fabcf1f11dcc939025bb0c109b00ed8"
 		},
 		{
 			"ImportPath": "github.com/gorilla/websocket",

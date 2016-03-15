@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"code.google.com/p/go-uuid/uuid"
 	"github.com/cloudfoundry/noaa/events"
+	"github.com/google/uuid"
 )
 
 type Clock interface {
