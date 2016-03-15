@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cloudfoundry/noaa/events"
+	"github.com/cloudfoundry/sonde-go/events"
 	"github.com/google/uuid"
 )
 
@@ -27,14 +27,18 @@ type BenchmarkRequest struct {
 	timeout time.Duration
 }
 
-func NewBenchmarkRequest(appUrl string, ch <-chan *events.Envelope, clock Clock, timeout time.Duration) *BenchmarkRequest {
+func NewBenchmarkRequest(appUrl string, ch <-chan *events.Envelope, clock Clock, timeout time.Duration) (*BenchmarkRequest, error) {
+	guuid, err := uuid.NewRandom()
+	if err != nil {
+		return nil, err
+	}
 	return &BenchmarkRequest{
-		Guid:    uuid.NewRandom(),
+		Guid:    guuid,
 		appUrl:  appUrl,
 		ch:      ch,
 		clock:   clock,
 		timeout: timeout,
-	}
+	}, nil
 }
 
 func (br *BenchmarkRequest) Do() (BenchmarkResponse, error) {

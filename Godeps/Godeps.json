@@ -19,7 +19,11 @@
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/noaa",
-			"Rev": "7ec5b0dce4f86d1d79e3d68df670760bffd7c7c5"
+			"Rev": "87a5a9673cf6b87f2d2167a1e1a4fecb7e32986f"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry/sonde-go/events",
+			"Rev": "3d364d9ed49fee2f9fdcba278199127462cae3c4"
 		},
 		{
 			"ImportPath": "github.com/gogo/protobuf/proto",

@@ -15,7 +15,7 @@ import (
 	cf_lager "github.com/cloudfoundry-incubator/cf-lager"
 	"github.com/cloudfoundry-incubator/thoth/assistant"
 	"github.com/cloudfoundry-incubator/thoth/benchmark"
-	"github.com/cloudfoundry/noaa/events"
+	"github.com/cloudfoundry/sonde-go/events"
 	"github.com/pivotal-golang/lager"
 	"github.com/tedsuo/ifrit"
 	"github.com/tedsuo/ifrit/grouper"
@@ -129,7 +129,11 @@ func (m *measurer) Run(signals <-chan os.Signal, ready chan<- struct{}) error {
 		select {
 		case <-ticker:
 			log.Info("tick")
-			br := benchmark.NewBenchmarkRequest(appUrl, channel, clock, 2*time.Second)
+			br, err := benchmark.NewBenchmarkRequest(appUrl, channel, clock, 2*time.Second)
+			if err != nil {
+				log.Error("benchmark-request-creation-failed", err)
+				continue
+			}
 			response, err := br.Do()
 			if err != nil {
 				log.Error("benchmark-request-failed", err)

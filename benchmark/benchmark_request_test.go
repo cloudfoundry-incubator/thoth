@@ -5,7 +5,7 @@ import (
 	"time"
 
 	. "github.com/cloudfoundry-incubator/thoth/benchmark"
-	"github.com/cloudfoundry/noaa/events"
+	"github.com/cloudfoundry/sonde-go/events"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -47,7 +47,9 @@ var _ = Describe("BenchmarkRequest", func() {
 			ch = make(chan *events.Envelope, 2)
 			clock = NewFakeClock()
 			server = ghttp.NewServer()
-			br = NewBenchmarkRequest(server.URL(), ch, clock, 100*time.Millisecond)
+			var err error
+			br, err = NewBenchmarkRequest(server.URL(), ch, clock, 100*time.Millisecond)
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		Context("everything works", func() {
