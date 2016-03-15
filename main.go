@@ -146,10 +146,12 @@ func (m *measurer) Run(signals <-chan os.Signal, ready chan<- struct{}) error {
 
 			m.emitMetric(response.ToDatadog(deploymentName, m.index))
 		case err := <-errorChan:
-			log.Error("firehose-disconnect", err)
-			close(errorChan)
-			refreshToken(cfAssistant)
-			channel, errorChan = connectToFirehose(cfAssistant, dopplerAddress, appGuid, stopChan)
+			if err != nil {
+				log.Error("firehose-disconnect", err)
+			} else {
+				refreshToken(cfAssistant)
+				channel, errorChan = connectToFirehose(cfAssistant, dopplerAddress, appGuid, stopChan)
+			}
 			continue
 		case s := <-signals:
 			log.Error("closing", nil, lager.Data{"signal": s})

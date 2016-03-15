@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	cf_lager "github.com/cloudfoundry-incubator/cf-lager"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/cf"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/runner"
 	"github.com/cloudfoundry/noaa"
@@ -69,7 +70,7 @@ func (a *Assistant) GetOauthToken() string {
 	gomega.RegisterFailHandler(ginkgo.Fail)
 
 	cf.AsUser(a.userContext, func() {
-		bytes := runner.Run("bash", "-c", "cf oauth-token | tail -n +4").Wait(CF_TIMEOUT).Out.Contents()
+		bytes := runner.Run("bash", "-c", "cf oauth-token").Wait(CF_TIMEOUT).Out.Contents()
 		token = strings.TrimSpace(string(bytes))
 	})
 
@@ -78,6 +79,7 @@ func (a *Assistant) GetOauthToken() string {
 
 func StreamRouterLogs(dopplerAddress, authToken, appGuid string, errorChan chan error, stopChan chan struct{}) <-chan *events.Envelope {
 	connection := noaa.NewConsumer(dopplerAddress, &tls.Config{InsecureSkipVerify: true}, nil)
+	logger, _ := cf_lager.New("thoth.streaming")
 
 	msgChan := make(chan *events.Envelope)
 	go func() {
@@ -91,6 +93,11 @@ func StreamRouterLogs(dopplerAddress, authToken, appGuid string, errorChan chan 
 		for {
 			select {
 			case msg := <-msgChan:
+				if msg == nil {
+					logger.Error("closing", errors.New("Received nil msg, ending goroutine"))
+					return
+				}
+
 				if strings.HasPrefix(*msg.Origin, ORIGIN) && (*msg.EventType == events.Envelope_HttpStartStop || *msg.EventType == events.Envelope_LogMessage) {
 					c <- msg
 				}
