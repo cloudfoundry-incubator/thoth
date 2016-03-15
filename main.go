@@ -116,10 +116,8 @@ type measurer struct {
 func (m *measurer) Run(signals <-chan os.Signal, ready chan<- struct{}) error {
 	log := logger.Session("measurer-" + strconv.Itoa(m.index))
 
-	stopChan := make(chan struct{})
-	defer close(stopChan)
 	log.Info("streaming-logs")
-	channel, errorChan := connectToFirehose(cfAssistant, dopplerAddress, appGuid, stopChan)
+	channel, errorChan := connectToFirehose(cfAssistant, dopplerAddress, appGuid)
 	close(ready)
 	log.Info("ready")
 
@@ -154,7 +152,7 @@ func (m *measurer) Run(signals <-chan os.Signal, ready chan<- struct{}) error {
 				log.Error("firehose-disconnect", err)
 			} else {
 				refreshToken(cfAssistant)
-				channel, errorChan = connectToFirehose(cfAssistant, dopplerAddress, appGuid, stopChan)
+				channel, errorChan = connectToFirehose(cfAssistant, dopplerAddress, appGuid)
 			}
 			continue
 		case s := <-signals:
@@ -184,9 +182,9 @@ func (m *measurer) emitMetric(req interface{}) {
 	})
 }
 
-func connectToFirehose(cfAssistant *assistant.Assistant, dopplerAddress, appGuid string, stopChan chan struct{}) (<-chan *events.Envelope, chan error) {
+func connectToFirehose(cfAssistant *assistant.Assistant, dopplerAddress, appGuid string) (<-chan *events.Envelope, chan error) {
 	errorChan := make(chan error)
-	channel := assistant.StreamRouterLogs(dopplerAddress, token, appGuid, errorChan, stopChan)
+	channel := assistant.StreamRouterLogs(dopplerAddress, token, appGuid, errorChan)
 	return channel, errorChan
 }
 

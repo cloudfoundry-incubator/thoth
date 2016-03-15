@@ -77,14 +77,14 @@ func (a *Assistant) GetOauthToken() string {
 	return token
 }
 
-func StreamRouterLogs(dopplerAddress, authToken, appGuid string, errorChan chan error, stopChan chan struct{}) <-chan *events.Envelope {
+func StreamRouterLogs(dopplerAddress, authToken, appGuid string, errorChan chan error) <-chan *events.Envelope {
 	connection := noaa.NewConsumer(dopplerAddress, &tls.Config{InsecureSkipVerify: true}, nil)
 	logger, _ := cf_lager.New("thoth.streaming")
 
 	msgChan := make(chan *events.Envelope)
 	go func() {
 		defer close(msgChan)
-		connection.Stream(appGuid, authToken, msgChan, errorChan, stopChan)
+		connection.Stream(appGuid, authToken, msgChan, errorChan)
 	}()
 
 	routerChan := make(chan *events.Envelope, 2)
@@ -95,14 +95,13 @@ func StreamRouterLogs(dopplerAddress, authToken, appGuid string, errorChan chan 
 			case msg := <-msgChan:
 				if msg == nil {
 					logger.Error("closing", errors.New("Received nil msg, ending goroutine"))
+					connection.Close()
 					return
 				}
 
 				if strings.HasPrefix(*msg.Origin, ORIGIN) && (*msg.EventType == events.Envelope_HttpStartStop || *msg.EventType == events.Envelope_LogMessage) {
 					c <- msg
 				}
-			case <-stopChan:
-				return
 			}
 		}
 	}(routerChan)
