@@ -3,3 +3,4 @@ applications:
   - name: thoth
     memory: 128M
     no-route: true
+    health-check-type: none
